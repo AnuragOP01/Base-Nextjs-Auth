@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Auth Base
 
-## Getting Started
+Minimal Next.js starter for email OTP sign-in, optional Google OAuth, Auth.js sessions, Drizzle ORM, Neon Postgres, and shadcn/ui.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. Copy `.env.example` to `.env.local`.
+2. Set `DATABASE_URL` to your Neon Postgres connection string.
+3. Generate an Auth.js secret with `openssl rand -base64 32` and set `AUTH_SECRET`.
+4. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and optionally `EMAIL_FROM`.
+5. Apply the checked-in database schema:
+
+   ```bash
+   npm run db:migrate
+   ```
+
+6. Start the app:
+
+   ```bash
+   npm run dev
+   ```
+
+Open `http://localhost:3000/login`. The root route redirects there. After login, `/dashboard` shows the current session and a sign-out button.
+
+## Optional Google login
+
+Create a Google OAuth client and set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env.local`. Add this authorized redirect URI to that client:
+
+```text
+http://localhost:3000/api/auth/callback/google
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Google sign-in is hidden until both variables are configured.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database changes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The auth schema is in `src/db/schema.ts`. After changing it, create a migration and apply it:
 
-## Learn More
+```bash
+npm run db:generate
+npm run db:migrate
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+OTP values are generated with cryptographic randomness, stored as keyed hashes, expire after 10 minutes, allow at most five verification attempts, and have a per-email resend cooldown. Add infrastructure-level/IP rate limiting before exposing the app to production traffic.
