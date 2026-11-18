@@ -20,7 +20,7 @@ Minimal Next.js starter for email OTP sign-in, optional Google OAuth, Auth.js se
    npm run dev
    ```
 
-Open `http://localhost:3000/login`. The root route redirects there. After login, `/dashboard` shows the current session and a sign-out button.
+Open `http://localhost:3000/login`. The root route redirects there. After login, `/dashboard` redirects to `/dashboard/user` or `/dashboard/admin` based on the user's role. New users default to `USER`; assign `ADMIN` in the database to grant the admin dashboard.
 
 ## Optional Google login
 

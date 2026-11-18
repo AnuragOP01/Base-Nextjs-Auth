@@ -13,10 +13,15 @@ import {
   verificationTokens,
 } from "@/db/schema";
 import { matchesOtpHash, OTP_MAX_ATTEMPTS } from "@/lib/otp";
+import { isUserRole, type UserRole } from "@/lib/roles";
 
 declare module "next-auth" {
   interface Session {
-    user: DefaultSession["user"] & { id: string };
+    user: DefaultSession["user"] & { id: string; role?: UserRole };
+  }
+
+  interface User {
+    role?: UserRole;
   }
 }
 
@@ -100,8 +105,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth(
       providers,
       session: { strategy: "jwt" },
       callbacks: {
+        jwt({ token, user }) {
+          if (user && isUserRole(user.role)) token["role"] = user.role;
+          return token;
+        },
         session({ session, token }) {
           if (session.user && token.sub) session.user.id = token.sub;
+          if (session.user && isUserRole(token["role"])) {
+            session.user.role = token["role"];
+          }
           return session;
         },
       },

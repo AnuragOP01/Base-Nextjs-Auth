@@ -1,5 +1,15 @@
 import { randomUUID } from "node:crypto";
-import { primaryKey, pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
+import {
+  integer,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
+import { userRoles } from "@/lib/roles";
+
+export const roleEnum = pgEnum("role", userRoles);
 
 export const users = pgTable("user", {
   id: text("id")
@@ -9,6 +19,7 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  role: roleEnum("role").default("USER").notNull(),
 });
 
 export const accounts = pgTable(
